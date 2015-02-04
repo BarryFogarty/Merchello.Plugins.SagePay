@@ -192,6 +192,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Provider\ISagePayPaymentGatewayMethod.cs" />
     <Compile Include="Provider\ISagePayPaymentGatewayProvider.cs" />
+    <Compile Include="Provider\SagePayPaymentGatewayMethod.cs" />
     <Compile Include="Provider\SagePayPaymentGatewayProvider.cs" />
   </ItemGroup>
   <ItemGroup>
