@@ -1,0 +1,29 @@
+
+-------------------------------------------------------------------------------
+   ROBOCOPY     ::     Robust File Copy for Windows                              
+-------------------------------------------------------------------------------
+
+  Started : Wed Feb 04 09:41:24 2015
+
+   Source : C:\Working Repositories\GitHub\Merchello.Plugins.SagePay\src\Merchello.Plugin.Payments.SagePay\bin\
+     Dest : C:\Working Repositories\GitHub\Merchello.Plugins.SagePay\src\Merchello.Plugin.Payments.SagePay\App_Data\NuGetBackup\20150204-094123\bin\
+
+    Files : *.*
+	    
+  Options : *.* /S /E /COPY:DAT /R:1000000 /W:30 
+
+------------------------------------------------------------------------------
+
+	                   0	C:\Working Repositories\GitHub\Merchello.Plugins.SagePay\src\Merchello.Plugin.Payments.SagePay\bin\
+	  New Dir          0	C:\Working Repositories\GitHub\Merchello.Plugins.SagePay\src\Merchello.Plugin.Payments.SagePay\bin\Debug\
+	  New Dir          0	C:\Working Repositories\GitHub\Merchello.Plugins.SagePay\src\Merchello.Plugin.Payments.SagePay\bin\Release\
+
+------------------------------------------------------------------------------
+
+               Total    Copied   Skipped  Mismatch    FAILED    Extras
+    Dirs :         3         2         1         0         0         0
+   Files :         0         0         0         0         0         0
+   Bytes :         0         0         0         0         0         0
+   Times :   0:00:00   0:00:00                       0:00:00   0:00:00
+
+   Ended : Wed Feb 04 09:41:24 2015
