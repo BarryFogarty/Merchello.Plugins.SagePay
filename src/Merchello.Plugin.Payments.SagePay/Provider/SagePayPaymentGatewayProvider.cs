@@ -15,6 +15,8 @@
     /// <summary>
     /// Represents the SagePayPaymentGatewayProvider for Merchello.
     /// </summary>
+    [GatewayProviderActivation("31FDA06C-A9D3-4DFB-9773-63724E0977B4", "SagePay Payment Provider", "SagePay Payment Provider")]
+    [GatewayProviderEditor("SagePay Payment Provider", "Configuration settings for the SagePay Payment Provider", "~/App_Plugins/Merchello.SagePay/payment.sagepay.paymentprovider.html")]
     public class SagePayPaymentGatewayProvider : PaymentGatewayProviderBase, ISagePayPaymentGatewayProvider
     {
         #region AvailableResources
@@ -24,7 +26,7 @@
         /// </summary>
         internal static readonly IEnumerable<IGatewayResource> AvailableResources = new List<IGatewayResource>
         {
-            new GatewayResource("iframe", "IFramed Payment Transaction")
+            new GatewayResource("iframe", "SagePay IFramed Payment Transaction")
         };
 
         #endregion

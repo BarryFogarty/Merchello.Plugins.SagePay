@@ -1,5 +1,6 @@
 ﻿namespace Merchello.Plugin.Payments.SagePay.Provider
 {
+    using Merchello.Core.Gateways;
     using Merchello.Core.Gateways.Payment;
     using Merchello.Core.Models;
     using Merchello.Core.Services;
@@ -7,6 +8,11 @@
     /// <summary>
     /// Represents a SagePayGatewayMethod for Merchello.
     /// </summary>
+    [GatewayMethodUi("SagePayIFrame")]
+    [PaymentGatewayMethod("SagePay IFrame Method Editors",
+        "~/App_Plugins/Merchello.SagePay/",
+        "~/App_Plugins/Merchello.SagePay/",
+        "~/App_Plugins/Merchello.SagePay/")]
     public class SagePayPaymentGatewayMethod : PaymentGatewayMethodBase, ISagePayPaymentGatewayMethod       
     {
         /// <summary>
@@ -46,6 +52,7 @@
         /// <returns>The <see cref="IPaymentResult"/></returns>
         protected override IPaymentResult PerformAuthorizeCapturePayment(IInvoice invoice, decimal amount, ProcessorArgumentCollection args)
         {
+            // SERVER Side implementation ... probably not need for the IFRAME method
             throw new System.NotImplementedException();
         }
 
