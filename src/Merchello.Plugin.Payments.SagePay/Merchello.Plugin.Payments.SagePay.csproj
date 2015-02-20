@@ -189,6 +189,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\SagePaySettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Provider\ISagePayPaymentGatewayMethod.cs" />
     <Compile Include="Provider\ISagePayPaymentGatewayProvider.cs" />
