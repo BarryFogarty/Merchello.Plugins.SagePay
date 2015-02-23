@@ -15,7 +15,7 @@
     /// <summary>
     /// Represents the SagePayPaymentGatewayProvider for Merchello.
     /// </summary>
-    [GatewayProviderActivation("31FDA06C-A9D3-4DFB-9773-63724E0977B4", "SagePay Payment Provider", "SagePay Payment Provider")]
+    [GatewayProviderActivation(Constants.GatewayProviderSettingsKey, "SagePay Payment Provider", "SagePay Payment Provider")]
     [GatewayProviderEditor("SagePay Payment Provider", "Configuration settings for the SagePay Payment Provider", "~/App_Plugins/Merchello.SagePay/payment.sagepay.providersettings.html")]
     public class SagePayPaymentGatewayProvider : PaymentGatewayProviderBase, ISagePayPaymentGatewayProvider
     {
