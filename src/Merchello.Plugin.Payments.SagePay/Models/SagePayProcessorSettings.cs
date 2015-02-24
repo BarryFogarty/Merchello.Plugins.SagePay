@@ -5,14 +5,14 @@ namespace Merchello.Plugin.Payments.SagePay.Models
 {
         public class SagePayProcessorSettings
         {
-
+            // From provider settings dialog data
             public bool LiveMode { get; set; }
             public string VendorName { get; set; }
             public string EncryptionPassword { get; set; }
-            public string SuccessCallbackUrl { get; set; }
-            public string FailureCallbackUrl { get; set; }
-            public string ApiVersion { get; set; }
-
+            public string ReturnUrl { get; set; }
+            
+            // Hard coded stuff 
+            public string ApiVersion = "3.00";
             public ProtocolVersion ProtocolVersion
             {
                 get
@@ -28,9 +28,6 @@ namespace Merchello.Plugin.Payments.SagePay.Models
                     return (TransactionType)Enum.Parse(typeof(TransactionType), Constants.TransactionType);
                 }
             }
-
-            //public string VendorUrl { get; set; }
-            //public string Currency { get; set; }
 
             
         }

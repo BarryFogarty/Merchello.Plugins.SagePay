@@ -47,18 +47,17 @@ namespace Merchello.Plugin.Payments.SagePay.Provider
         /// <returns>The <see cref="IPaymentResult"/></returns>
         protected override IPaymentResult PerformAuthorizePayment(IInvoice invoice, ProcessorArgumentCollection args)
         {
-            return InitializePayment(invoice, args, -1);
+            return InitializePayment(invoice, args);
         }
 
 
-        private IPaymentResult InitializePayment(IInvoice invoice, ProcessorArgumentCollection args, decimal captureAmount)
+        private IPaymentResult InitializePayment(IInvoice invoice, ProcessorArgumentCollection args)
         {
             var payment = GatewayProviderService.CreatePayment(PaymentMethodType.CreditCard, invoice.Total, PaymentMethod.Key);
             payment.CustomerKey = invoice.CustomerKey;
             payment.Authorized = false;
             payment.Collected = false;
             payment.PaymentMethodName = "SagePay";
-            payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.CaptureAmount, captureAmount.ToString(System.Globalization.CultureInfo.InvariantCulture));
             GatewayProviderService.Save(payment);
 
             var result = _processor.InitializePayment(invoice, payment, args);

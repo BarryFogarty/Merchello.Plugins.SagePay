@@ -14,23 +14,24 @@ namespace Merchello.Plugin.Payments.SagePay
         public static class ExtendedDataKeys
         {
             public static string ProcessorSettings = "sagePayProviderSettings";
-            public static string CaptureAmount = "CaptureAmount";
 
-            public static string SuccessCallbackUrl = "successCallbackUrl";
-            public static string FailureCallbackUrl = "failureCallbackUrl";
+            // Stores the Sagepay redirect URL once the transaction post has been registered
+            public static string SagePayPaymentUrl = "SagePayPaymentUrl";
 
+            // Key to hold the recept page URL to show confirmation of payment 
+            public static string ReturnUrl = "ReturnUrl";
+
+            public static string PaymentAuthorized = "PaymentAuthorized";
+
+            // Our generated unique ID for the transaction , e.g. babypotz-1424717223480-230356
+            public static string VendorTransactionCode = "VendorTransactionCode";
+
+            // Sagepay unique ID for the transaction 
+            public static string SagePayTransactionCode = "SagePayTransactionCode";
+
+            // Sagepay security key for the transaction, used as a key for confirming the MD5 hash signature in the notification POST
+            public static string SagePaySecurityKey = "SagePaySecurityKey";
         }
-
-        //public static class ProcessorPaymentUrls
-        //{
-        //    public static class FormPayment
-        //    {
-
-        //    }
-
-            
-
-        //}
 
 
     }
