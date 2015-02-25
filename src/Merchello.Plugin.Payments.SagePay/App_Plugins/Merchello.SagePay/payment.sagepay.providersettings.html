@@ -5,20 +5,59 @@
     </div>
 
     <div class="umb-panel-body with-header with-footer">       
-        <form name="editTemplateForm" class="well" data-ng-class="{ 'open': flyouts.editTemplate, 'closed': !flyouts.editTemplate }">
-            <div class="control-group row-fluid">
-                <p>Vendor Name<br /></p>
-                <div class="input-prepend col-xs-12 span12">
-                    <input class="col-xs-8 span8" type="text" data-ng-model="apiSettings.VendorName" placeholder="Your account username">
-                </div>
+        
+        <div class="control-group row-fluid">
+            <div class="input-prepend col-xs-12 span12">
+                <label for="vendor-name">Vendor Name</label>
+                <input name="vendor-name" class="col-xs-8 span12" type="text" data-ng-model="providerSettings.VendorName" placeholder="Account username">
             </div>
-            <div class="control-group row-fluid">
-                <p>Encryption Password<br /></p>
-                <div class="input-prepend col-xs-12 span12">
-                    <input class="col-xs-8 span8" type="text" data-ng-model="apiSettings.EncryptionPassword" placeholder="Provided by SagePay on account setup">
-                </div>
+        </div>
+
+        <div class="control-group row-fluid">
+            <div class="col-xs-12 span12">
+                <label for="encryption-password">Encryption Password</label>
+                <input name="encryption-password" class="col-xs-8 span12" type="text" data-ng-model="providerSettings.EncryptionPassword" placeholder="Provided by SagePay">
             </div>
-        </form>
+        </div>
+        
+        <!--<div class="control-group row-fluid">
+            <div class="col-xs-12 span12">
+                <label for="success-callback-url">Success Callback Url</label>
+                <input name="success-callback-url" class="col-xs-8 span12" type="text" data-ng-model="providerSettings.SuccessCallbackUrl" placeholder="Full URL of page or route to handle a success payment notification from Sagepay">
+            </div>
+        </div>
+        
+        <div class="control-group row-fluid">
+            <div class="col-xs-12 span12">
+                <label for="failure-callback-url">Failure Callback Url</label>
+                <input name="failure-callback-url" class="col-xs-8 span12" type="text" data-ng-model="providerSettings.FailureCallbackUrl" placeholder="Full URL of page or route to handle a failure payment notification from Sagepay">
+            </div>
+        </div>-->
+        
+        <div class="control-group row-fluid">
+            <div class="col-xs-12 span12">
+                <label for="return-url">Return Url</label>
+                <input name="return-url" class="col-xs-8 span12" type="text" data-ng-model="providerSettings.ReturnUrl" placeholder="e.g. Payment confirmation / Receipt page.  Uses %INVOICE% token for invoice key">
+            </div>
+        </div>
+
+        <div class="control-group row-fluid">
+            <div class="col-xs-12 span12">
+                <label for="environment">Environment</label>
+                <select name="environment" class="col-xs-12 span12" data-ng-model="providerSettings.Environment">
+                    <option value="Test">Test</option>
+                    <option value="Live">Live</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="control-group row-fluid">
+            <div class="col-xs-12 span12">
+                <label for="api-version">API Version</label>
+                <input name="api-version" class="col-xs-8 span12" type="text" data-ng-model="providerSettings.ApiVersion" placeholder="3.00">
+            </div>
+        </div>
+
     </div>
     
     <div class="umb-panel-footer">
