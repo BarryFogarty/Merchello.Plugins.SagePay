@@ -134,7 +134,7 @@ namespace Merchello.Plugin.Payments.SagePay
         }
 
 
-        //TODO: refactor away from this class (and make it return something?)
+        //TODO: refactor away to a Service that wraps the SagePay kit horribleness
         private void SetSagePayApiData(IFormPayment request, IInvoice invoice, IPayment payment)
         {
             // Get Merchello data
@@ -208,44 +208,33 @@ namespace Merchello.Plugin.Payments.SagePay
         }
 
         public IPaymentResult AuthorizePayment(IInvoice invoice, IPayment payment)
-        {
-            
+        {         
             try
             {
- 
+                payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.PaymentAuthorized, "true");
+                payment.Authorized = true;
             }
             catch (Exception ex)
             {
                 return new PaymentResult(Attempt<IPayment>.Fail(payment, ex), invoice, false);
             }
-
-            payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.PaymentAuthorized, "true");
-            payment.Authorized = true;
 
             return new PaymentResult(Attempt<IPayment>.Succeed(payment), invoice, true);
         }
 
         public IPaymentResult CapturePayment(IInvoice invoice, IPayment payment, decimal amount, bool isPartialPayment)
         {
-            throw new NotImplementedException();
-
             try
             {
-                
+                payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.PaymentCaptured, "true");
+                payment.Collected = true;
             }
             catch (Exception ex)
             {
                 return new PaymentResult(Attempt<IPayment>.Fail(payment, ex), invoice, false);
             }
 
-            //payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.TransactionId, doCaptureResponse.DoCaptureResponseDetails.PaymentInfo.TransactionID);
-            //payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.PaymentCaptured, "true");
-            
-
-            payment.Authorized = true;
-            payment.Collected = true;
             return new PaymentResult(Attempt<IPayment>.Succeed(payment), invoice, true);
-
         }
 
         private Exception CreateErrorResult(HttpContent errors)

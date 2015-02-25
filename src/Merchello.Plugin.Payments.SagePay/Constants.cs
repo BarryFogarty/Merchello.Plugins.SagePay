@@ -22,6 +22,7 @@ namespace Merchello.Plugin.Payments.SagePay
             public static string ReturnUrl = "ReturnUrl";
 
             public static string PaymentAuthorized = "PaymentAuthorized";
+            public static string PaymentCaptured = "PaymentCaptured";
 
             // Our generated unique ID for the transaction , e.g. babypotz-1424717223480-230356
             public static string VendorTransactionCode = "VendorTransactionCode";
@@ -31,6 +32,8 @@ namespace Merchello.Plugin.Payments.SagePay
 
             // Sagepay security key for the transaction, used as a key for confirming the MD5 hash signature in the notification POST
             public static string SagePaySecurityKey = "SagePaySecurityKey";
+
+            
         }
 
 

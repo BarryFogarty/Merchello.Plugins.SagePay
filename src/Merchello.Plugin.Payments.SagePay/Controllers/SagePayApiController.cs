@@ -132,7 +132,7 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
 
             // Capture payment
             var providerKeyGuid = new Guid(Constants.GatewayProviderSettingsKey);
-            var paymentGatewayMethod = _merchelloContext.Gateways.Payment.GetPaymentGatewayMethodByKey(providerKeyGuid);
+            var paymentGatewayMethod = _merchelloContext.Gateways.Payment.GetPaymentGatewayMethods().First(item => item.PaymentMethod.ProviderKey == providerKeyGuid);
 
             var captureResult = paymentGatewayMethod.CapturePayment(invoice, payment, payment.Amount, null);
             if (!captureResult.Payment.Success)
@@ -141,7 +141,6 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
                 return ShowError(captureResult.Payment.Exception.Message);
             }
 
-            // TODO: I think I may have to return a HTTP Post to sagepay at this point?  Although it seems the transactions on MySagePay look fine..
             // Redirect to ReturnUrl (with token replacement)
             var returnUrl = payment.ExtendedData.GetValue(Constants.ExtendedDataKeys.ReturnUrl);
             var response = Request.CreateResponse(HttpStatusCode.Moved);

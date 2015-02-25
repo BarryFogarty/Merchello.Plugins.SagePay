@@ -26,7 +26,7 @@
         /// </summary>
         internal static readonly IEnumerable<IGatewayResource> AvailableResources = new List<IGatewayResource>
         {
-            new GatewayResource("iframe", "SagePay IFramed Payment Transaction")
+            new GatewayResource("SagePay Form", "SagePay Form Payment Transaction")
         };
 
         #endregion
