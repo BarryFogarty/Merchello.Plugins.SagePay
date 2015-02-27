@@ -15,36 +15,14 @@ using IPaymentResult = Merchello.Core.Gateways.Payment.IPaymentResult;
 
 namespace Merchello.Plugin.Payments.SagePay
 {
-    public class SagePayPaymentProcessor
-    {
-        public SagePayProcessorSettings Settings { get; set; }
-
-		public SagePayPaymentProcessor(SagePayProcessorSettings settings)
+    public class SagePayFormPaymentProcessor : SagePayPaymentProcessorBase
+    {       
+        public SagePayFormPaymentProcessor(SagePayProcessorSettings settings)
+            : base(settings)
         {
             Settings = settings;
         }
-
-		/// <summary>
-		/// Get the absolute base URL for this website
-		/// </summary>
-		/// <returns></returns>
-		private static string GetWebsiteUrl()
-		{
-			var url = HttpContext.Current.Request.Url;
-			var baseUrl = String.Format("{0}://{1}{2}", url.Scheme, url.Host, url.IsDefaultPort ? "" : ":" + url.Port);
-			return baseUrl;
-		}
-
-		/// <summary>
-		/// Get the mode string: "live" or "test".
-		/// </summary>
-		/// <param name="liveMode"></param>
-		/// <returns></returns>
-		private static string GetModeString(bool liveMode)
-		{
-			return (liveMode ? "live" : "test");
-		}
-
+       		
 		/// <summary>
 		/// Create a dictionary with credentials for SagePay service.
 		/// </summary>
@@ -82,7 +60,7 @@ namespace Merchello.Plugin.Payments.SagePay
 
                 if (errors.Count > 0)
                 {
-                    return new PaymentResult(Attempt<IPayment>.Fail(payment, CreateErrorResult(errors)), invoice, true);
+                    return new PaymentResult(Attempt<IPayment>.Fail(payment, base.CreateErrorResult(errors)), invoice, true);
                 }
 
                 sagePayFormIntegration.ProcessRequest(request);
@@ -206,49 +184,6 @@ namespace Merchello.Plugin.Payments.SagePay
             //request.DeliveryPhone = shippingAddress.Phone;
 
         }
-
-        public IPaymentResult AuthorizePayment(IInvoice invoice, IPayment payment)
-        {         
-            try
-            {
-                payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.PaymentAuthorized, "true");
-                payment.Authorized = true;
-            }
-            catch (Exception ex)
-            {
-                return new PaymentResult(Attempt<IPayment>.Fail(payment, ex), invoice, false);
-            }
-
-            return new PaymentResult(Attempt<IPayment>.Succeed(payment), invoice, true);
-        }
-
-        public IPaymentResult CapturePayment(IInvoice invoice, IPayment payment, decimal amount, bool isPartialPayment)
-        {
-            try
-            {
-                payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.PaymentCaptured, "true");
-                payment.Collected = true;
-            }
-            catch (Exception ex)
-            {
-                return new PaymentResult(Attempt<IPayment>.Fail(payment, ex), invoice, false);
-            }
-
-            return new PaymentResult(Attempt<IPayment>.Succeed(payment), invoice, true);
-        }
-
-        private Exception CreateErrorResult(HttpContent errors)
-        {
-            //var errorText = errors.Count == 0 ? "Unknown error" : ("- " + string.Join("\n- ", errors.Select(item => item.LongMessage)));
-            return new Exception(errors.ToString());
-        }
-
-        private Exception CreateErrorResult(NameValueCollection errors)
-        {
-            return new Exception(errors.Cast<string>().Select(e => errors[e]).ToString());
-        }
-
-
 
     }
 }
