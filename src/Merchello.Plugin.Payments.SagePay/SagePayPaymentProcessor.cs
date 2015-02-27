@@ -121,7 +121,7 @@ namespace Merchello.Plugin.Payments.SagePay
                 payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.SagePayPaymentUrl, redirectUrl);
 
                 // Store our site return URL in extendedData so it can be used in the callback
-                payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.ReturnUrl, Settings.ReturnUrl);
+                //payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.ReturnUrl, Settings.ReturnUrl);
 
                 return new PaymentResult(Attempt<IPayment>.Succeed(payment), invoice, true);
 

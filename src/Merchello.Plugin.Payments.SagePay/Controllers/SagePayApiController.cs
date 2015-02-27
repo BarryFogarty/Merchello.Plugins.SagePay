@@ -105,11 +105,7 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
             var payment = _merchelloContext.Services.PaymentService.GetByKey(paymentKey);
             if (invoice == null || payment == null)
             {
-                var ex =
-                    new NullReferenceException(
-                        string.Format(
-                            "Invalid argument exception. Arguments: invoiceKey={0}, paymentKey={1}",
-                            invoiceKey, paymentKey));
+                var ex = new NullReferenceException( string.Format( "Invalid argument exception. Arguments: invoiceKey={0}, paymentKey={1}", invoiceKey, paymentKey));
                 LogHelper.Error<SagePayApiController>("Payment not authorized.", ex);
                 throw ex;
             }
@@ -142,7 +138,7 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
             }
 
             // Redirect to ReturnUrl (with token replacement)
-            var returnUrl = payment.ExtendedData.GetValue(Constants.ExtendedDataKeys.ReturnUrl);
+            var returnUrl = _processor.Settings.ReturnUrl;
             var response = Request.CreateResponse(HttpStatusCode.Moved);
             response.Headers.Location = new Uri(returnUrl.Replace("%INVOICE%", invoice.Key.ToString().EncryptWithMachineKey()));
             return response;
@@ -152,7 +148,28 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
         [HttpGet]
         public HttpResponseMessage AbortPayment(Guid invoiceKey, Guid paymentKey, string crypt)
         {
-            throw new NotImplementedException();
+            var invoiceService = _merchelloContext.Services.InvoiceService;
+            var paymentService = _merchelloContext.Services.PaymentService;
+
+            var invoice = invoiceService.GetByKey(invoiceKey);
+            var payment = paymentService.GetByKey(paymentKey);
+            if (invoice == null || payment == null)
+            {
+                var ex = new NullReferenceException(string.Format("Invalid argument exception. Arguments: invoiceKey={0}, paymentKey={1}", invoiceKey, paymentKey));
+                LogHelper.Error<SagePayApiController>("Payment not aborted correctly.", ex);
+                throw ex;
+            }
+
+            // Delete invoice
+            // invoiceService.Delete(invoice);
+            payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.PaymentCancelled, "true");
+            payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.PaymentCancelInfo, "Payment cancelled by customer");
+
+            // Return to CancelUrl
+            var cancelUrl = _processor.Settings.CancelUrl;
+            var response = Request.CreateResponse(HttpStatusCode.Moved);
+            response.Headers.Location = new Uri(cancelUrl);
+            return response;
 
         }
 
