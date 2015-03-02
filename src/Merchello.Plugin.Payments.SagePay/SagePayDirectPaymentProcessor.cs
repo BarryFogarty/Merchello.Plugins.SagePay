@@ -12,6 +12,7 @@ using SagePay.IntegrationKit.Messages;
 using Umbraco.Core;
 using IPayment = Merchello.Core.Models.IPayment;
 using IPaymentResult = Merchello.Core.Gateways.Payment.IPaymentResult;
+using SagePay.IntegrationKit;
 
 namespace Merchello.Plugin.Payments.SagePay
 {
@@ -53,9 +54,24 @@ namespace Merchello.Plugin.Payments.SagePay
         {
             try
             {            
-               ///TODO: Attempt payment here
+                var sagePayDirectIntegration = new SagePayAPIIntegration(Settings);
+                var request = sagePayDirectIntegration.DirectPaymentRequest();
 
-                return new PaymentResult(Attempt<IPayment>.Succeed(payment), invoice, true);
+                var creditCard = args.AsCreditCard();
+                 
+                SetSagePayApiData(request, invoice, payment, creditCard);
+
+                IDirectPaymentResult result = sagePayDirectIntegration.ProcessDirectPaymentRequest(request, string.Format("https://{0}.sagepay.com/gateway/service/vspdirect-register.vsp", GetModeString(Settings.LiveMode)));
+
+                //TODO: deal with 3D Secure
+                if (result.Status == ResponseStatus.OK)
+                {
+                    return new PaymentResult(Attempt<IPayment>.Succeed(payment), invoice, true);
+                }
+                else
+                {
+                    return new PaymentResult(Attempt<IPayment>.Fail(payment, new Exception(result.StatusDetail)), invoice, true);
+                }
 
             }
             catch (Exception ex)
@@ -67,7 +83,7 @@ namespace Merchello.Plugin.Payments.SagePay
 
 
         //TODO: refactor away to a Service that wraps the SagePay kit horribleness
-        private void SetSagePayApiData(IFormPayment request, IInvoice invoice, IPayment payment)
+        private void SetSagePayApiData(IDirectPayment request, IInvoice invoice, IPayment payment, CreditCard creditCard)
         {
             // Get Merchello data
             //TODO - what if there is no shipping info?  e.g. Classes only - Get from billing?
@@ -75,6 +91,7 @@ namespace Merchello.Plugin.Payments.SagePay
             var shipment = shipmentLineItem.ExtendedData.GetShipment<InvoiceLineItem>();
             var shippingAddress = shipment.GetDestinationAddress();
             var billingAddress = invoice.GetBillingAddress(); 
+            
 
             // Merchello info for callback
             //request.InvoiceKey = invoice.Key;
@@ -101,9 +118,6 @@ namespace Merchello.Plugin.Payments.SagePay
                 return url;
             };
 
-            request.SuccessUrl = adjustUrl("/umbraco/MerchelloSagePay/SagePayApi/SuccessPayment?InvoiceKey={invoiceKey}&PaymentKey={paymentKey}");
-            request.FailureUrl = adjustUrl("/umbraco/MerchelloSagePay/SagePayApi/AbortPayment?InvoiceKey={invoiceKey}&PaymentKey={paymentKey}");
-
             // Billing details
             request.BillingSurname = billingAddress.TrySplitLastName();
             request.BillingFirstnames = billingAddress.TrySplitFirstName();
@@ -120,6 +134,12 @@ namespace Merchello.Plugin.Payments.SagePay
             request.DeliveryCity = shippingAddress.Locality;
             request.DeliveryCountry = shippingAddress.CountryCode;
             request.DeliveryPostCode = shippingAddress.PostalCode;
+
+            request.CardType = (CardType)Enum.Parse(typeof(CardType), creditCard.CreditCardType);
+            request.CardHolder = creditCard.CardholderName;
+            request.CardNumber = creditCard.CardNumber;
+            request.ExpiryDate = creditCard.ExpireMonth + creditCard.ExpireYear;
+            request.Cv2 = creditCard.CardCode;
 
             //Optional
             //request.CustomerName = cart.Billing.FirstNames + " " + cart.Billing.Surname;
