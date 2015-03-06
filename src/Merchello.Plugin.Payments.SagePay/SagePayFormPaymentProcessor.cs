@@ -98,8 +98,12 @@ namespace Merchello.Plugin.Payments.SagePay
                 var redirectUrl = result.RequestMessage.RequestUri.ToString();
                 payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.SagePayPaymentUrl, redirectUrl);
 
-                // Store our site return URL in extendedData so it can be used in the callback
-                //payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.ReturnUrl, Settings.ReturnUrl);
+                // Store our site return URL and cancel URL in extendedData so it can be used in the callback
+                var returnUrl = GetWebsiteUrl() + Settings.ReturnUrl;
+                payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.ReturnUrl, returnUrl);
+
+                var cancelUrl = GetWebsiteUrl() + Settings.CancelUrl;
+                payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.CancelUrl, cancelUrl);
 
                 return new PaymentResult(Attempt<IPayment>.Succeed(payment), invoice, true);
 

@@ -138,7 +138,7 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
             }
 
             // Redirect to ReturnUrl (with token replacement)
-            var returnUrl = _processor.Settings.ReturnUrl;
+            var returnUrl = payment.ExtendedData.GetValue(Constants.ExtendedDataKeys.ReturnUrl);
             var response = Request.CreateResponse(HttpStatusCode.Moved);
             response.Headers.Location = new Uri(returnUrl.Replace("%INVOICE%", invoice.Key.ToString().EncryptWithMachineKey()));
             return response;
@@ -166,7 +166,7 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
             payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.PaymentCancelInfo, "Payment cancelled by customer");
 
             // Return to CancelUrl
-            var cancelUrl = _processor.Settings.CancelUrl;
+            var cancelUrl = payment.ExtendedData.GetValue(Constants.ExtendedDataKeys.CancelUrl);
             var response = Request.CreateResponse(HttpStatusCode.Moved);
             response.Headers.Location = new Uri(cancelUrl);
             return response;
