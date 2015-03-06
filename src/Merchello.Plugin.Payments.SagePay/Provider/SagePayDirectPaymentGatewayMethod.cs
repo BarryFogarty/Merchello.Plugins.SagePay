@@ -16,12 +16,11 @@ namespace Merchello.Plugin.Payments.SagePay.Provider
         "~/App_Plugins/Merchello.SagePay/",
         "~/App_Plugins/Merchello.SagePay/",
         "~/App_Plugins/Merchello.SagePay/")]
-    public class SagePayPaymentGatewayMethod : PaymentGatewayMethodBase, ISagePayPaymentGatewayMethod       
+    public class SagePayDirectPaymentGatewayMethod : SagePayPaymentGatewayMethodBase, ISagePayDirectPaymentGatewayMethod       
     {
-        private readonly SagePayPaymentProcessor _processor;
-        
+                
         /// <summary>
-        /// Initializes a new instance of the <see cref="SagePayPaymentGatewayMethod"/> class.
+        /// Initializes a new instance of the <see cref="SagePayDirectPaymentGatewayMethod"/> class.
         /// </summary>
         /// <param name="gatewayProviderService">
         /// The <see cref="GatewayProviderService"/>.
@@ -32,11 +31,11 @@ namespace Merchello.Plugin.Payments.SagePay.Provider
         /// <param name="extendedData">
         /// The SagePay providers <see cref="ExtendedDataCollection"/>
         /// </param>
-        public SagePayPaymentGatewayMethod(IGatewayProviderService gatewayProviderService, IPaymentMethod paymentMethod, ExtendedDataCollection extendedData)
-            : base(gatewayProviderService, paymentMethod)
+        public SagePayDirectPaymentGatewayMethod(IGatewayProviderService gatewayProviderService, IPaymentMethod paymentMethod, ExtendedDataCollection extendedData)
+            : base(gatewayProviderService, paymentMethod, extendedData)
         {
             // New instance of the SagePay payment processor
-            _processor = new SagePayPaymentProcessor(extendedData.GetProcessorSettings());
+            _processor = new SagePayDirectPaymentProcessor(extendedData.GetProcessorSettings());
         }
 
         /// <summary>
@@ -60,7 +59,7 @@ namespace Merchello.Plugin.Payments.SagePay.Provider
             payment.PaymentMethodName = "SagePay";
             GatewayProviderService.Save(payment);
 
-            var result = _processor.InitializePayment(invoice, payment, args);
+            var result = ((SagePayDirectPaymentProcessor)_processor).InitializePayment(invoice, payment, args);
 
             if (!result.Payment.Success)
             {
@@ -109,42 +108,5 @@ namespace Merchello.Plugin.Payments.SagePay.Provider
         }
 
 
-        /// <summary>
-        /// Does the actual work of authorizing and capturing a payment
-        /// </summary>
-        /// <param name="invoice">The <see cref="IInvoice"/></param>
-        /// <param name="amount">The amount to capture</param>
-        /// <param name="args">Any arguments required to process the payment.</param>
-        /// <returns>The <see cref="IPaymentResult"/></returns>
-        protected override IPaymentResult PerformAuthorizeCapturePayment(IInvoice invoice, decimal amount, ProcessorArgumentCollection args)
-        {
-            // SERVER Side implementation ... probably not need for the IFRAME method
-            throw new System.NotImplementedException();
-        }
-
-        /// <summary>
-        /// Does the actual work of refunding a payment
-        /// </summary>
-        /// <param name="invoice">The <see cref="IInvoice"/></param>
-        /// <param name="payment">The previously Authorize payment to be captured</param>
-        /// <param name="amount">The amount to be refunded</param>
-        /// <param name="args">Any arguments required to process the payment.</param>
-        /// <returns>The <see cref="IPaymentResult"/></returns>
-        protected override IPaymentResult PerformRefundPayment(IInvoice invoice, IPayment payment, decimal amount, ProcessorArgumentCollection args)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        /// <summary>
-        /// Does the actual work of voiding a payment
-        /// </summary>
-        /// <param name="invoice">The invoice to which the payment is associated</param>
-        /// <param name="payment">The payment to be voided</param>
-        /// <param name="args">Additional arguments required by the payment processor</param>
-        /// <returns>A <see cref="IPaymentResult"/></returns>
-        protected override IPaymentResult PerformVoidPayment(IInvoice invoice, IPayment payment, ProcessorArgumentCollection args)
-        {
-            throw new System.NotImplementedException();
-        }
     }
 }

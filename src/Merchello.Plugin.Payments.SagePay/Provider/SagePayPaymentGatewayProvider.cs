@@ -26,7 +26,8 @@
         /// </summary>
         internal static readonly IEnumerable<IGatewayResource> AvailableResources = new List<IGatewayResource>
         {
-            new GatewayResource("SagePay Form", "SagePay Form Payment Transaction")
+            new GatewayResource("SagePay Form", "SagePay Form Payment Transaction"),
+            new GatewayResource("SagePay Direct", "SagePay Direct Payment Transaction")
         };
 
         #endregion
@@ -93,9 +94,9 @@
             {
                 PaymentMethods = null;
 
-                //// TODO if we need multiple methods required for this provider we will need to instantiate the appropriate type here
-                //// based off the "available.ServiceCode" value
-                return new SagePayPaymentGatewayMethod(GatewayProviderService, attempt.Result, GatewayProviderSettings.ExtendedData);
+                return available.ServiceCode == "SagePay Form" ?
+                    (IPaymentGatewayMethod)new SagePayFormPaymentGatewayMethod(GatewayProviderService, attempt.Result, GatewayProviderSettings.ExtendedData) :
+                    new SagePayDirectPaymentGatewayMethod(GatewayProviderService, attempt.Result, GatewayProviderSettings.ExtendedData);
             }
 
             LogHelper.Error<SagePayPaymentGatewayProvider>(string.Format("Failed to create a payment method name: {0}, description {1}, paymentCode {2}", name, description, available.ServiceCode), attempt.Exception);
@@ -104,7 +105,7 @@
         }
 
         /// <summary>
-        /// Get's a <see cref="SagePayPaymentGatewayMethod"/> by it's database key.
+        /// Get's a <see cref="SagePayFormPaymentGatewayMethod"/> by it's database key.
         /// </summary>
         /// <param name="paymentMethodKey">
         /// The payment method key.
@@ -116,15 +117,21 @@
         {
             var paymentMethod = PaymentMethods.FirstOrDefault(x => x.Key == paymentMethodKey);
 
-            if (paymentMethod == null) throw new NullReferenceException("PaymentMethod not found");
 
-            //// TODO if we need multiple methods required for this provider we will need to instantiate the appropriate type here
-            //// based off the "available.ServiceCode" value
-            return new SagePayPaymentGatewayMethod(GatewayProviderService, paymentMethod, GatewayProviderSettings.ExtendedData);
+            if (paymentMethod != null)
+            {
+                return paymentMethod.PaymentCode == "SagePay Form" ?
+                    (IPaymentGatewayMethod)new SagePayFormPaymentGatewayMethod(GatewayProviderService, paymentMethod, GatewayProviderSettings.ExtendedData) :
+                    new SagePayDirectPaymentGatewayMethod(GatewayProviderService, paymentMethod, GatewayProviderSettings.ExtendedData);
+
+            }
+
+            throw new NullReferenceException("Failed to find PaymentMethod with key specified");
+
         }
 
         /// <summary>
-        /// Get's a <see cref="SagePayPaymentGatewayMethod"/> by it's payment code (service code).
+        /// Get's a <see cref="SagePayFormPaymentGatewayMethod"/> by it's payment code (service code).
         /// </summary>
         /// <param name="paymentCode">
         /// The payment code.
@@ -136,11 +143,17 @@
         {
             var paymentMethod = PaymentMethods.FirstOrDefault(x => x.PaymentCode == paymentCode);
 
-            if (paymentMethod == null) throw new NullReferenceException("PaymentMethod not found");
 
-            //// TODO if we need multiple methods required for this provider we will need to instantiate the appropriate type here
-            //// based off the "available.ServiceCode" value
-            return new SagePayPaymentGatewayMethod(GatewayProviderService, paymentMethod, GatewayProviderSettings.ExtendedData);
+            if (paymentMethod != null)
+            {
+                return paymentMethod.PaymentCode == "SagePay Form" ?
+                    (IPaymentGatewayMethod)new SagePayFormPaymentGatewayMethod(GatewayProviderService, paymentMethod, GatewayProviderSettings.ExtendedData) :
+                    new SagePayDirectPaymentGatewayMethod(GatewayProviderService, paymentMethod, GatewayProviderSettings.ExtendedData);
+
+            }
+
+            throw new NullReferenceException("Failed to find PaymentMethod with key specified");
+
         }
     }
 }

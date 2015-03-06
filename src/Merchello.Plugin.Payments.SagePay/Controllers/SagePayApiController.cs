@@ -31,7 +31,7 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
         /// <summary>
         /// The SagePay payment processor.
         /// </summary>
-        private readonly SagePayPaymentProcessor _processor;
+        private readonly SagePayFormPaymentProcessor _processor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SagePayApiController"/> class.
@@ -65,7 +65,7 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
             }
 
             _merchelloContext = merchelloContext;
-            _processor = new SagePayPaymentProcessor(provider.ExtendedData.GetProcessorSettings());
+            _processor = new SagePayFormPaymentProcessor(provider.ExtendedData.GetProcessorSettings());
         }
 
 
