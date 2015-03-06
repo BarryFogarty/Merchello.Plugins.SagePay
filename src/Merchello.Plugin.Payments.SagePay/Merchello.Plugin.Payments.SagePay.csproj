@@ -197,14 +197,22 @@
     <Compile Include="Constants.cs" />
     <Compile Include="Controllers\SagePayApiController.cs" />
     <Compile Include="MappingExtensions.cs" />
+    <Compile Include="Models\CreditCard.cs" />
+    <Compile Include="Models\CreditCardExtensions.cs" />
     <Compile Include="Models\SagePayProcessorSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Provider\ISagePayPaymentGatewayMethod.cs" />
+    <Compile Include="Provider\ISagePayDirectPaymentGatewayMethod.cs" />
+    <Compile Include="Provider\ISagePayFormPaymentGatewayMethod.cs" />
     <Compile Include="Provider\ISagePayPaymentGatewayProvider.cs" />
-    <Compile Include="Provider\SagePayPaymentGatewayMethod.cs" />
+    <Compile Include="Provider\SagePayDirectPaymentGatewayMethod.cs" />
+    <Compile Include="Provider\SagePayFormPaymentGatewayMethod.cs" />
+    <Compile Include="Provider\SagePayPaymentGatewayMethodBase.cs" />
     <Compile Include="Provider\SagePayPaymentGatewayProvider.cs" />
-    <Compile Include="SagePayPaymentProcessor.cs" />
+    <Compile Include="SagePayDirectPaymentProcessor.cs" />
+    <Compile Include="SagePayPaymentProcessorBase.cs" />
+    <Compile Include="SagePayFormPaymentProcessor.cs" />
     <Compile Include="SagePayService\SagePayAPIIntegration.cs" />
+    <Compile Include="SagePayService\SagePayDirectIntegration.cs" />
     <Compile Include="SagePayService\SagePayFormIntegration.cs" />
   </ItemGroup>
   <ItemGroup>
