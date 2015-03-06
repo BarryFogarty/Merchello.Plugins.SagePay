@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using Merchello.Plugin.Payments.SagePay.SagePayService;
+using Merchello.Web;
 using SagePay.IntegrationKit;
 using Umbraco.Core;
 using Umbraco.Core.Logging;
@@ -103,16 +104,22 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
             // Query merchello for associated invoice and payment objects
             var invoice = _merchelloContext.Services.InvoiceService.GetByKey(invoiceKey);
             var payment = _merchelloContext.Services.PaymentService.GetByKey(paymentKey);
-            if (invoice == null || payment == null)
+
+            if (invoice == null || payment == null || invoice.CustomerKey == null)
             {
                 var ex = new NullReferenceException( string.Format( "Invalid argument exception. Arguments: invoiceKey={0}, paymentKey={1}", invoiceKey, paymentKey));
                 LogHelper.Error<SagePayApiController>("Payment not authorized.", ex);
                 throw ex;
             }
 
+            // Get a ref to the customer so the invoice Key can be stored in their extended data.
+            // This can be retrieved on the receipt page
+            //var customer = _merchelloContext.Services.CustomerService.GetByKey(invoice.CustomerKey.Value);
+            //customer.ExtendedData.SetValue(Constants.ExtendedDataKeys.InvoiceKey, invoice.Key.ToString());
+
             // Store some SagePay data in payment
             payment.ReferenceNumber = paymentResult.VpsTxId;
-            //payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.SagePayTransactionCode, paymentResult.VpsTxId);
+            payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.SagePayTransactionCode, paymentResult.VpsTxId);
 
             // Authorize and save payment
             var authorizeResult = _processor.AuthorizePayment(invoice, payment);
@@ -137,7 +144,7 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
                 return ShowError(captureResult.Payment.Exception.Message);
             }
 
-            // Redirect to ReturnUrl (with token replacement)
+            // Redirect to ReturnUrl (with token replacement for an alternative means of order retrieval)
             var returnUrl = payment.ExtendedData.GetValue(Constants.ExtendedDataKeys.ReturnUrl);
             var response = Request.CreateResponse(HttpStatusCode.Moved);
             response.Headers.Location = new Uri(returnUrl.Replace("%INVOICE%", invoice.Key.ToString().EncryptWithMachineKey()));

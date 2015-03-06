@@ -162,6 +162,7 @@ namespace Merchello.Plugin.Payments.SagePay
             request.BillingPostCode = billingAddress.PostalCode;
             request.BillingCity = billingAddress.Locality;
             request.BillingCountry = invoice.BillToCountryCode;
+            request.CustomerEmail = billingAddress.Email;
 
             // Shipping details
             request.DeliverySurname = shippingAddress.TrySplitLastName();
@@ -173,7 +174,7 @@ namespace Merchello.Plugin.Payments.SagePay
 
             //Optional
             //request.CustomerName = cart.Billing.FirstNames + " " + cart.Billing.Surname;
-            //request.CustomerEmail = customer.Email;
+            
             //request.VendorEmail = Settings.VendorEmail;
             //request.SendEmail = Settings.SendEmail;
 

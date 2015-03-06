@@ -39,6 +39,9 @@ namespace Merchello.Plugin.Payments.SagePay
             // Sagepay security key for the transaction, used as a key for confirming the MD5 hash signature in the notification POST
             public static string SagePaySecurityKey = "SagePaySecurityKey";
 
+            // Stores the invoice key with the customer context so it can be retrieved on a receipt page 
+            public static string InvoiceKey = "invoiceKey";
+
         }
 
 
