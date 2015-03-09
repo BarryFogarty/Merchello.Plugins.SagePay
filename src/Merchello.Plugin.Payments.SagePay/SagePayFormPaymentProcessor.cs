@@ -128,11 +128,16 @@ namespace Merchello.Plugin.Payments.SagePay
         private void SetSagePayApiData(IFormPayment request, IInvoice invoice, IPayment payment)
         {
             // Get Merchello data
-            //TODO - what if there is no shipping info?  e.g. Classes only - Get from billing?
+            var billingAddress = invoice.GetBillingAddress();
+            var shippingAddress = billingAddress;
+
+            // Shipment - only use a shipping address if there is shipment info in the invoice
             var shipmentLineItem = invoice.ShippingLineItems().FirstOrDefault();
-            var shipment = shipmentLineItem.ExtendedData.GetShipment<InvoiceLineItem>();
-            var shippingAddress = shipment.GetDestinationAddress();
-            var billingAddress = invoice.GetBillingAddress(); 
+            if (shipmentLineItem != null)
+            {
+                var shipment = shipmentLineItem.ExtendedData.GetShipment<InvoiceLineItem>();
+                shippingAddress = shipment.GetDestinationAddress();
+            }
             
             // SagePay details
             request.VpsProtocol = Settings.ProtocolVersion;
