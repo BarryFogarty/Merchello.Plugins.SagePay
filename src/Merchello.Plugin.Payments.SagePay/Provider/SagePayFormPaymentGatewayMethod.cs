@@ -67,7 +67,6 @@ namespace Merchello.Plugin.Payments.SagePay.Provider
             }
             else
             {
-                GatewayProviderService.Save(payment);
                 GatewayProviderService.ApplyPaymentToInvoice(payment.Key, invoice.Key, AppliedPaymentType.Debit, "SagePay: initialized", 0);
             }
 

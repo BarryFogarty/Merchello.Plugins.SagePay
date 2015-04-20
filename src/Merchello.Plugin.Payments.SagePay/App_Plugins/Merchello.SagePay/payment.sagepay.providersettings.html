@@ -35,9 +35,18 @@
         </div>-->
         
         <div class="control-group row-fluid">
+            <p>Payment receipt page.  Uses %INVOICE% token for invoice key</p>
             <div class="col-xs-12 span12">
                 <label for="return-url">Return Url</label>
-                <input name="return-url" class="col-xs-8 span12" type="text" data-ng-model="providerSettings.ReturnUrl" placeholder="e.g. Payment confirmation / Receipt page.  Uses %INVOICE% token for invoice key">
+                <input name="return-url" class="col-xs-8 span12" type="text" data-ng-model="providerSettings.ReturnUrl" placeholder="/receipt?inv=%INVOICE%">
+            </div>
+        </div>
+        
+        <div class="control-group row-fluid">
+            <p>URL if the customer aborts payment process</p>
+            <div class="col-xs-12 span12">
+                <label for="return-url">Cancel Url</label>
+                <input name="return-url" class="col-xs-8 span12" type="text" data-ng-model="providerSettings.CancelUrl" placeholder="/basket">
             </div>
         </div>
 

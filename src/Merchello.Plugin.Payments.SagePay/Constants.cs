@@ -18,11 +18,17 @@ namespace Merchello.Plugin.Payments.SagePay
             // Stores the Sagepay redirect URL once the transaction post has been registered
             public static string SagePayPaymentUrl = "SagePayPaymentUrl";
 
-            // Key to hold the recept page URL to show confirmation of payment 
+            // Stores the receipt page URL to show confirmation of payment 
             public static string ReturnUrl = "ReturnUrl";
 
+            // Stores the URL to return to if the customer aborts payment on SagePay
+            public static string CancelUrl = "CancelUrl";
+
+            // Flag keys
             public static string PaymentAuthorized = "PaymentAuthorized";
             public static string PaymentCaptured = "PaymentCaptured";
+            public static string PaymentCancelled = "PaymentCancelled";
+            public static string PaymentCancelInfo = "PaymentCancelInfo";
 
             // Our generated unique ID for the transaction , e.g. babypotz-1424717223480-230356
             public static string VendorTransactionCode = "VendorTransactionCode";
@@ -33,7 +39,9 @@ namespace Merchello.Plugin.Payments.SagePay
             // Sagepay security key for the transaction, used as a key for confirming the MD5 hash signature in the notification POST
             public static string SagePaySecurityKey = "SagePaySecurityKey";
 
-            
+            // Stores the invoice key with the customer context so it can be retrieved on a receipt page 
+            public static string InvoiceKey = "invoiceKey";
+
         }
 
 
