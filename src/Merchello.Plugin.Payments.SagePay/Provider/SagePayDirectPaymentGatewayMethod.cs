@@ -94,12 +94,12 @@ namespace Merchello.Plugin.Payments.SagePay.Provider
             if (!result.Payment.Success)
             {
                 //payment.VoidPayment(invoice, payment.PaymentMethodKey.Value);
-                GatewayProviderService.ApplyPaymentToInvoice(payment.Key, invoice.Key, AppliedPaymentType.Denied, "PayPal: request capture error: " + result.Payment.Exception.Message, 0);
+                GatewayProviderService.ApplyPaymentToInvoice(payment.Key, invoice.Key, AppliedPaymentType.Denied, "Sagepay: request capture error: " + result.Payment.Exception.Message, 0);
             }
             else
             {
                 GatewayProviderService.Save(payment);
-                GatewayProviderService.ApplyPaymentToInvoice(payment.Key, invoice.Key, AppliedPaymentType.Debit, "PayPal: captured", amount);
+                GatewayProviderService.ApplyPaymentToInvoice(payment.Key, invoice.Key, AppliedPaymentType.Debit, "Sagepay: captured", amount);
                 //GatewayProviderService.ApplyPaymentToInvoice(payment.Key, invoice.Key, AppliedPaymentType.Debit, payment.ExtendedData.GetValue(Constants.ExtendedDataKeys.CaptureTransactionResult), amount);
             }
 

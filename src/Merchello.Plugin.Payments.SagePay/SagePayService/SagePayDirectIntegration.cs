@@ -28,7 +28,13 @@ namespace Merchello.Plugin.Payments.SagePay.SagePayService
             return Validation(ProtocolMessage.FORM_PAYMENT, typeof(IDirectPayment), directPayment, _settings.ProtocolVersion);
         }
 
-      
+
+
+        public IThreeDAuthRequest ThreeDAuthRequest()
+        {
+            IThreeDAuthRequest request = new DataObject();
+            return request;
+        }
 
         
     }

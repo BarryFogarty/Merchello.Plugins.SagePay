@@ -11,6 +11,7 @@ namespace Merchello.Plugin.Payments.SagePay.Models
             public string EncryptionPassword { get; set; }
             public string ReturnUrl { get; set; }
             public string CancelUrl { get; set; }
+            public string Environment { get; set; }
             
             // Hard coded stuff 
             public string ApiVersion = "3.00";

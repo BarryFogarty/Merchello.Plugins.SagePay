@@ -218,9 +218,15 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App_Plugins\Merchello.SagePay\3dsecureFinished.aspx">
+      <SubType>ASPXCodeBehind</SubType>
+    </Content>
     <Content Include="App_Plugins\Merchello.SagePay\payment.sagepay.module.js" />
     <Content Include="App_Plugins\Merchello.SagePay\payment.sagepay.providersettings.controller.js" />
     <Content Include="App_Plugins\Merchello.SagePay\payment.sagepay.providersettings.html" />
+    <Content Include="App_Plugins\Merchello.SagePay\3dsecureRedirect.aspx">
+      <SubType>ASPXCodeBehind</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="HttpHandlers\" />
