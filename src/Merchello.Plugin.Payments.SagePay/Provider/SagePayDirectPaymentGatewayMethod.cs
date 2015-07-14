@@ -11,8 +11,9 @@ namespace Merchello.Plugin.Payments.SagePay.Provider
     /// <summary>
     /// Represents a SagePayGatewayMethod for Merchello.
     /// </summary>
-    [GatewayMethodUi("SagePayIFrame")]
-    [PaymentGatewayMethod("SagePay IFrame Method Editors",
+    [GatewayMethodUi("SagePayDirect")]
+    [GatewayMethodEditor("SagePay Direct Method Editor", "~/App_Plugins/Merchello.SagePay/payment.sagepay.providersettings.html")]
+    [PaymentGatewayMethod("SagePay Direct Method Editors",
         "~/App_Plugins/Merchello.SagePay/",
         "~/App_Plugins/Merchello.SagePay/",
         "~/App_Plugins/Merchello.SagePay/")]

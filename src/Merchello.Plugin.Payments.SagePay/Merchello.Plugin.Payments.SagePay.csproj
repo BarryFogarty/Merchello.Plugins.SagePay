@@ -205,6 +205,7 @@
     <Compile Include="Provider\SagePayFormPaymentGatewayMethod.cs" />
     <Compile Include="Provider\SagePayPaymentGatewayMethodBase.cs" />
     <Compile Include="Provider\SagePayPaymentGatewayProvider.cs" />
+    <Compile Include="Provider\SagePayProviderEvents.cs" />
     <Compile Include="SagePayDirectPaymentProcessor.cs" />
     <Compile Include="SagePayPaymentProcessorBase.cs" />
     <Compile Include="SagePayFormPaymentProcessor.cs" />

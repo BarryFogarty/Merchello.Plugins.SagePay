@@ -15,8 +15,8 @@
     /// <summary>
     /// Represents the SagePayPaymentGatewayProvider for Merchello.
     /// </summary>
-    [GatewayProviderActivation(Constants.GatewayProviderSettingsKey, "SagePay Payment Provider", "SagePay Payment Provider")]
     [GatewayProviderEditor("SagePay Payment Provider", "Configuration settings for the SagePay Payment Provider", "~/App_Plugins/Merchello.SagePay/payment.sagepay.providersettings.html")]
+    [GatewayProviderActivation(Constants.GatewayProviderSettingsKey, "SagePay Payment Provider", "SagePay Payment Provider")]
     public class SagePayPaymentGatewayProvider : PaymentGatewayProviderBase, ISagePayPaymentGatewayProvider
     {
         #region AvailableResources
@@ -44,7 +44,10 @@
         /// <param name="runtimeCacheProvider">
         /// Umbraco's <see cref="IRuntimeCacheProvider"/>.
         /// </param>
-        public SagePayPaymentGatewayProvider(IGatewayProviderService gatewayProviderService, IGatewayProviderSettings gatewayProviderSettings, IRuntimeCacheProvider runtimeCacheProvider)
+        public SagePayPaymentGatewayProvider(
+            IGatewayProviderService gatewayProviderService, 
+            IGatewayProviderSettings gatewayProviderSettings, 
+            IRuntimeCacheProvider runtimeCacheProvider)
             : base(gatewayProviderService, gatewayProviderSettings, runtimeCacheProvider)
         {
         }
@@ -155,5 +158,7 @@
             throw new NullReferenceException("Failed to find PaymentMethod with key specified");
 
         }
+
+      
     }
 }

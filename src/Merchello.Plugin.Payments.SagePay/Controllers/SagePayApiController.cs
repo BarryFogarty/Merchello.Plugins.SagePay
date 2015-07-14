@@ -295,7 +295,7 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
             var invoice = _merchelloContext.Services.InvoiceService.GetByKey(invoiceKey);
             var payment = _merchelloContext.Services.PaymentService.GetByKey(paymentKey);
 
-            if (invoice == null || payment == null || invoice.CustomerKey == null)
+            if (invoice == null)
             {
                 var ex = new NullReferenceException(string.Format("Invalid argument exception. Arguments: invoiceKey={0}, paymentKey={1}", invoiceKey, paymentKey));
                 LogHelper.Error<SagePayApiController>("Payment not authorized.", ex);
@@ -341,6 +341,9 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
                 return ShowError(captureResult.Payment.Exception.Message);
             }
 
+            Notification.Trigger("OrderConfirmation", new Merchello.Core.Gateways.Payment.PaymentResult(Attempt<Merchello.Core.Models.IPayment>.Succeed(payment), invoice, true), new[] { invoice.BillToEmail });
+            
+            
             // Redirect to ReturnUrl (with token replacement for an alternative means of order retrieval)
             var returnUrl = payment.ExtendedData.GetValue(Constants.ExtendedDataKeys.ReturnUrl);
             var response = Request.CreateResponse(HttpStatusCode.Moved);

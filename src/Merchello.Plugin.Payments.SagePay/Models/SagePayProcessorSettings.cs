@@ -5,6 +5,10 @@ namespace Merchello.Plugin.Payments.SagePay.Models
 {
         public class SagePayProcessorSettings
         {
+            public SagePayProcessorSettings()
+            {
+
+            }
             // From provider settings dialog data
             public bool LiveMode { get; set; }
             public string VendorName { get; set; }
