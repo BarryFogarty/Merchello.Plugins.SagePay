@@ -42,6 +42,9 @@ namespace Merchello.Plugin.Payments.SagePay
             // Stores the invoice key with the customer context so it can be retrieved on a receipt page 
             public static string InvoiceKey = "invoiceKey";
 
+            // Stores the 3DSecure url
+            public static string ThreeDSecureUrl = "ThreeDSecureUrl";
+
         }
 
 

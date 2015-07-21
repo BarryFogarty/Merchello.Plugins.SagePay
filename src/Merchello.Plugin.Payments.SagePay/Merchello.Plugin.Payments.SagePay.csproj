@@ -78,14 +78,17 @@
     <Reference Include="Lucene.Net">
       <HintPath>..\packages\Lucene.Net.2.9.4.1\lib\net40\Lucene.Net.dll</HintPath>
     </Reference>
-    <Reference Include="Merchello.Core">
-      <HintPath>..\packages\Merchello.Core.1.8.0\lib\net40\Merchello.Core.dll</HintPath>
+    <Reference Include="Merchello.Core, Version=1.9.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\Merchello.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Merchello.Examine">
-      <HintPath>..\packages\Merchello.Core.1.8.0\lib\net40\Merchello.Examine.dll</HintPath>
+    <Reference Include="Merchello.Examine, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\Merchello.Examine.dll</HintPath>
     </Reference>
-    <Reference Include="Merchello.Web">
-      <HintPath>..\packages\Merchello.Core.1.8.0\lib\net40\Merchello.Web.dll</HintPath>
+    <Reference Include="Merchello.Web, Version=1.9.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\Merchello.Web.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ApplicationBlocks.Data">
       <HintPath>..\packages\UmbracoCms.Core.7.2.1\lib\Microsoft.ApplicationBlocks.Data.dll</HintPath>
@@ -205,6 +208,7 @@
     <Compile Include="Provider\SagePayFormPaymentGatewayMethod.cs" />
     <Compile Include="Provider\SagePayPaymentGatewayMethodBase.cs" />
     <Compile Include="Provider\SagePayPaymentGatewayProvider.cs" />
+    <Compile Include="Provider\SagePayProviderEvents.cs" />
     <Compile Include="SagePayDirectPaymentProcessor.cs" />
     <Compile Include="SagePayPaymentProcessorBase.cs" />
     <Compile Include="SagePayFormPaymentProcessor.cs" />
@@ -218,9 +222,15 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App_Plugins\Merchello.SagePay\3dsecureFinished.aspx">
+      <SubType>ASPXCodeBehind</SubType>
+    </Content>
     <Content Include="App_Plugins\Merchello.SagePay\payment.sagepay.module.js" />
     <Content Include="App_Plugins\Merchello.SagePay\payment.sagepay.providersettings.controller.js" />
     <Content Include="App_Plugins\Merchello.SagePay\payment.sagepay.providersettings.html" />
+    <Content Include="App_Plugins\Merchello.SagePay\3dsecureRedirect.aspx">
+      <SubType>ASPXCodeBehind</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="HttpHandlers\" />

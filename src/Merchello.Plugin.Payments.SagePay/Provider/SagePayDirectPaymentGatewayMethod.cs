@@ -11,8 +11,11 @@ namespace Merchello.Plugin.Payments.SagePay.Provider
     /// <summary>
     /// Represents a SagePayGatewayMethod for Merchello.
     /// </summary>
-    [GatewayMethodUi("SagePayIFrame")]
-    [PaymentGatewayMethod("SagePay IFrame Method Editors",
+    [GatewayMethodUi("SagePayDirect")]
+    [GatewayMethodEditor("SagePay Direct Method Editor", "~/App_Plugins/Merchello/Backoffice/Merchello/Dialogs/payment.paymentmethod.addedit.html")]
+    [PaymentGatewayMethod("SagePay Direct Method Editors",
+        "~/App_Plugins/Merchello.SagePay/",
+        "~/App_Plugins/Merchello.SagePay/",
         "~/App_Plugins/Merchello.SagePay/",
         "~/App_Plugins/Merchello.SagePay/",
         "~/App_Plugins/Merchello.SagePay/")]
@@ -94,12 +97,12 @@ namespace Merchello.Plugin.Payments.SagePay.Provider
             if (!result.Payment.Success)
             {
                 //payment.VoidPayment(invoice, payment.PaymentMethodKey.Value);
-                GatewayProviderService.ApplyPaymentToInvoice(payment.Key, invoice.Key, AppliedPaymentType.Denied, "PayPal: request capture error: " + result.Payment.Exception.Message, 0);
+                GatewayProviderService.ApplyPaymentToInvoice(payment.Key, invoice.Key, AppliedPaymentType.Denied, "Sagepay: request capture error: " + result.Payment.Exception.Message, 0);
             }
             else
             {
                 GatewayProviderService.Save(payment);
-                GatewayProviderService.ApplyPaymentToInvoice(payment.Key, invoice.Key, AppliedPaymentType.Debit, "PayPal: captured", amount);
+                GatewayProviderService.ApplyPaymentToInvoice(payment.Key, invoice.Key, AppliedPaymentType.Debit, "Sagepay: captured", amount);
                 //GatewayProviderService.ApplyPaymentToInvoice(payment.Key, invoice.Key, AppliedPaymentType.Debit, payment.ExtendedData.GetValue(Constants.ExtendedDataKeys.CaptureTransactionResult), amount);
             }
 

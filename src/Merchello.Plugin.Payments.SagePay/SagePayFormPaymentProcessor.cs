@@ -82,7 +82,7 @@ namespace Merchello.Plugin.Payments.SagePay
                 try
                 {
                     // Post the form to SagePay VSP
-                    var formPaymentUrl = string.Format("https://{0}.sagepay.com/gateway/service/vspform-register.vsp", GetModeString(Settings.LiveMode));
+                    var formPaymentUrl = string.Format("https://{0}.sagepay.com/gateway/service/vspform-register.vsp", Settings.Environment);
                     // TEST form post
                     //var formPaymentUrl = string.Format("https://{0}.sagepay.com/showpost/showpost.asp", GetModeString(Settings.LiveMode));
 

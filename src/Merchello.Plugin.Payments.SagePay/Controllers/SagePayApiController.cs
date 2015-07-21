@@ -15,6 +15,10 @@ using Merchello.Core;
 using Merchello.Core.Services;
 using Merchello.Plugin.Payments.SagePay.Provider;
 using System.Text;
+using SagePay.IntegrationKit.Messages;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Web;
 
 namespace Merchello.Plugin.Payments.SagePay.Controllers
 {
@@ -32,7 +36,8 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
         /// <summary>
         /// The SagePay payment processor.
         /// </summary>
-        private readonly SagePayFormPaymentProcessor _processor;
+        private readonly SagePayFormPaymentProcessor _formProcessor;
+        private readonly SagePayDirectPaymentProcessor _directProcessor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SagePayApiController"/> class.
@@ -66,7 +71,8 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
             }
 
             _merchelloContext = merchelloContext;
-            _processor = new SagePayFormPaymentProcessor(provider.ExtendedData.GetProcessorSettings());
+            _formProcessor = new SagePayFormPaymentProcessor(provider.ExtendedData.GetProcessorSettings());
+            _directProcessor = new SagePayDirectPaymentProcessor(provider.ExtendedData.GetProcessorSettings());
         }
 
 
@@ -89,7 +95,7 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
                 throw ex;
             }
 
-            var sagePayFormIntegration = new SagePayFormIntegration(_processor.Settings);
+            var sagePayFormIntegration = new SagePayFormIntegration(_formProcessor.Settings);
             var paymentResult =  sagePayFormIntegration.ProcessResult(crypt);
 
             if (paymentResult.Status != ResponseStatus.OK && 
@@ -122,7 +128,7 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
             payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.SagePayTransactionCode, paymentResult.VpsTxId);
 
             // Authorize and save payment
-            var authorizeResult = _processor.AuthorizePayment(invoice, payment);
+            var authorizeResult = _formProcessor.AuthorizePayment(invoice, payment);
             _merchelloContext.Services.GatewayProviderService.Save(payment);
             if (!authorizeResult.Payment.Success)
             {
@@ -180,6 +186,194 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
 
         }
 
+
+
+        [HttpPost]
+        public HttpResponseMessage PaypalCallback(Guid invoiceKey, Guid paymentKey)
+        {
+            IPayPalNotificationRequest payPalNotificationRequest = new SagePayDirectIntegration(_directProcessor.Settings).GetPayPalNotificationRequest();
+
+            if (payPalNotificationRequest.Status != ResponseStatus.OK)
+            {
+                //var ex = new Exception(string.Format("Invalid payment status.  Detail: {0}", paymentResult.StatusDetail));
+                //LogHelper.Error<SagePayApiController>("Sagepay error processing payment.", ex);
+                return ShowError(payPalNotificationRequest.StatusDetail);
+            }
+
+            // Query merchello for associated invoice and payment objects
+            var invoice = _merchelloContext.Services.InvoiceService.GetByKey(invoiceKey);
+            var payment = _merchelloContext.Services.PaymentService.GetByKey(paymentKey);
+
+            if (invoice == null || payment == null || invoice.CustomerKey == null)
+            {
+                var ex = new NullReferenceException(string.Format("Invalid argument exception. Arguments: invoiceKey={0}, paymentKey={1}", invoiceKey, paymentKey));
+                LogHelper.Error<SagePayApiController>("Payment not authorized.", ex);
+                throw ex;
+            }
+
+            // Complete payment with Sagepay
+            // Once again, the sagepay integration kit provided by sagepay does not support paypal integration with sagepay direct so we have to build the post manually.
+            NameValueCollection sagePayResponseValues = new NameValueCollection();
+            using (var client = new HttpClient())
+            {
+                var values = new Dictionary<string, string> { };
+                values.Add("Accept", "YES");
+                values.Add("VPSProtocol", "3.00");
+                values.Add("TxType", "COMPLETE");
+                values.Add("VPSTxId", payment.ExtendedData.GetValue(Constants.ExtendedDataKeys.SagePayTransactionCode));
+                values.Add("Amount", invoice.Total.ToString("n2"));
+   
+                var content = new FormUrlEncodedContent(values);
+
+                var sagePayResponse = client.PostAsync(string.Format("https://{0}.sagepay.com/gateway/service/complete.vsp", _directProcessor.Settings.Environment), content).Result;
+
+                var responseString = sagePayResponse.Content.ReadAsStringAsync().Result.Replace("\r\n", "&");
+
+                sagePayResponseValues = HttpUtility.ParseQueryString(responseString);
+                if (sagePayResponseValues["Status"] != "OK")
+                {
+                    return ShowError(sagePayResponseValues["StatusDetail"]);    
+                }
+                
+
+            }
+
+
+            // Get a ref to the customer so the invoice Key can be stored in their extended data.
+            // This can be retrieved on the receipt page
+            //var customer = _merchelloContext.Services.CustomerService.GetByKey(invoice.CustomerKey.Value);
+            //customer.ExtendedData.SetValue(Constants.ExtendedDataKeys.InvoiceKey, invoice.Key.ToString());
+
+            // Store some SagePay data in payment
+            payment.ReferenceNumber = sagePayResponseValues["VPSTxId"];
+            payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.SagePayTransactionCode, sagePayResponseValues["VPSTxId"]);
+
+            // Authorize and save payment
+            var authorizeResult = _directProcessor.AuthorizePayment(invoice, payment);
+            _merchelloContext.Services.GatewayProviderService.Save(payment);
+            if (!authorizeResult.Payment.Success)
+            {
+                LogHelper.Error<SagePayApiController>("Payment is not authorized.", authorizeResult.Payment.Exception);
+                _merchelloContext.Services.GatewayProviderService.ApplyPaymentToInvoice(payment.Key, invoice.Key, AppliedPaymentType.Denied, "SagePay: request capture authorization error: " + authorizeResult.Payment.Exception.Message, 0);
+                return ShowError(authorizeResult.Payment.Exception.Message);
+            }
+
+            _merchelloContext.Services.GatewayProviderService.ApplyPaymentToInvoice(payment.Key, invoice.Key, AppliedPaymentType.Debit, "SagePay: capture authorized", 0);
+
+            // Capture payment
+            var providerKeyGuid = new Guid(Constants.GatewayProviderSettingsKey);
+            var paymentGatewayMethod = _merchelloContext.Gateways.Payment.GetPaymentGatewayMethods().First(item => item.PaymentMethod.ProviderKey == providerKeyGuid);
+
+            var captureResult = paymentGatewayMethod.CapturePayment(invoice, payment, payment.Amount, null);
+            if (!captureResult.Payment.Success)
+            {
+                LogHelper.Error<SagePayApiController>("Payment not captured.", captureResult.Payment.Exception);
+                return ShowError(captureResult.Payment.Exception.Message);
+            }
+
+            // Redirect to ReturnUrl (with token replacement for an alternative means of order retrieval)
+            var returnUrl = payment.ExtendedData.GetValue(Constants.ExtendedDataKeys.ReturnUrl);
+            var response = Request.CreateResponse(HttpStatusCode.Moved);
+            response.Headers.Location = new Uri(returnUrl.Replace("%INVOICE%", invoice.Key.ToString().EncryptWithMachineKey()));
+            return response;
+        }
+
+        // MVC doesn't seem to like getting querystring and form post mixed so create a class for the form post
+        public class threeDSecurePostback {
+            public string MD { get; set; }
+            public string PaRes { get; set; }
+            public string MDX { get; set; }
+        }
+
+        [HttpPost]
+        public HttpResponseMessage ThreeDSecureCallback(Guid invoiceKey, Guid paymentKey, [FromBody]threeDSecurePostback values)
+        {
+        
+              SagePayDirectIntegration sagePayDirectIntegration = new SagePayDirectIntegration(_directProcessor.Settings);
+
+            // Query merchello for associated invoice and payment objects
+            var invoice = _merchelloContext.Services.InvoiceService.GetByKey(invoiceKey);
+            var payment = _merchelloContext.Services.PaymentService.GetByKey(paymentKey);
+
+            if (invoice == null)
+            {
+                var ex = new NullReferenceException(string.Format("Invalid argument exception. Arguments: invoiceKey={0}, paymentKey={1}", invoiceKey, paymentKey));
+                LogHelper.Error<SagePayApiController>("Payment not authorized.", ex);
+                throw ex;
+            }
+
+            // Complete payment with Sagepay
+
+            IThreeDAuthRequest request = sagePayDirectIntegration.ThreeDAuthRequest();
+            request.Md = values.MD;
+            request.PaRes = values.PaRes;
+            IDirectPaymentResult result = sagePayDirectIntegration.ProcessDirect3D(request);
+
+            if (result.Status != ResponseStatus.OK)
+            {
+                return ShowError(result.StatusDetail);
+
+            }
+            // Store some SagePay data in payment
+            payment.ReferenceNumber = result.VpsTxId;
+            payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.SagePayTransactionCode, result.VpsTxId);
+
+            // Authorize and save payment
+            var authorizeResult = _directProcessor.AuthorizePayment(invoice, payment);
+            _merchelloContext.Services.GatewayProviderService.Save(payment);
+            if (!authorizeResult.Payment.Success)
+            {
+                LogHelper.Error<SagePayApiController>("Payment is not authorized.", authorizeResult.Payment.Exception);
+                _merchelloContext.Services.GatewayProviderService.ApplyPaymentToInvoice(payment.Key, invoice.Key, AppliedPaymentType.Denied, "SagePay: request capture authorization error: " + authorizeResult.Payment.Exception.Message, 0);
+                return ShowError(authorizeResult.Payment.Exception.Message);
+            }
+
+            _merchelloContext.Services.GatewayProviderService.ApplyPaymentToInvoice(payment.Key, invoice.Key, AppliedPaymentType.Debit, "SagePay: capture authorized", 0);
+
+            // Capture payment
+            var providerKeyGuid = new Guid(Constants.GatewayProviderSettingsKey);
+            var paymentGatewayMethod = _merchelloContext.Gateways.Payment.GetPaymentGatewayMethods().First(item => item.PaymentMethod.ProviderKey == providerKeyGuid);
+
+            var captureResult = paymentGatewayMethod.CapturePayment(invoice, payment, payment.Amount, null);
+            if (!captureResult.Payment.Success)
+            {
+                LogHelper.Error<SagePayApiController>("Payment not captured.", captureResult.Payment.Exception);
+                return ShowError(captureResult.Payment.Exception.Message);
+            }
+
+            Notification.Trigger("OrderConfirmation", new Merchello.Core.Gateways.Payment.PaymentResult(Attempt<Merchello.Core.Models.IPayment>.Succeed(payment), invoice, true), new[] { invoice.BillToEmail });
+            
+            
+            // Redirect to ReturnUrl (with token replacement for an alternative means of order retrieval)
+            var returnUrl = payment.ExtendedData.GetValue(Constants.ExtendedDataKeys.ReturnUrl);
+            var response = Request.CreateResponse(HttpStatusCode.Moved);
+
+            Func<string, string> adjustUrl = (url) =>
+            {
+                if (!url.StartsWith("http")) url = GetWebsiteUrl() + (url[0] == '/' ? "" : "/") + url;
+                url = url.Replace("{invoiceKey}", invoice.Key.ToString(), StringComparison.InvariantCultureIgnoreCase);
+                url = url.Replace("{paymentKey}", payment.Key.ToString(), StringComparison.InvariantCultureIgnoreCase);
+                return url;
+            };
+
+            var redirectUrl = adjustUrl("/App_Plugins/Merchello.SagePay/3dsecureFinished.aspx?");
+            redirectUrl += "&redirect=" + Base64Encode(returnUrl.Replace("%INVOICE%", invoice.Key.ToString().EncryptWithMachineKey()));
+            response.Headers.Location = new Uri(redirectUrl);
+            return response;
+        }
+
+        protected static string GetWebsiteUrl()
+        {
+            var url = HttpContext.Current.Request.Url;
+            var baseUrl = String.Format("{0}://{1}{2}", url.Scheme, url.Host, url.IsDefaultPort ? "" : ":" + url.Port);
+            return baseUrl;
+        }
+
+        public static string Base64Encode(string plainText)
+        {
+            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+            return System.Convert.ToBase64String(plainTextBytes);
+        }
 
         // TODO: add link to Error page
         private HttpResponseMessage ShowError(string message)
