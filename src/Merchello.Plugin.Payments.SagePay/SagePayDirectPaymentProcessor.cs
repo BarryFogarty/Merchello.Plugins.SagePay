@@ -65,6 +65,15 @@ namespace Merchello.Plugin.Payments.SagePay
                                 {
                                     values.Add("TxType", "PAYMENT");
                                 }
+                                else if (property.Name == "Amount")
+                                {
+                                    // If amount has no decimal place, the property.getvalue method adds lots of zeros
+                                    var amount = property.GetValue(request).ToString();
+                                    var amountDec = decimal.Parse(amount);
+
+                                    values.Add(property.Name, amountDec.ToString("n2"));
+
+                                }
                                 else
                                 {
                                     values.Add(property.Name, property.GetValue(request).ToString());
