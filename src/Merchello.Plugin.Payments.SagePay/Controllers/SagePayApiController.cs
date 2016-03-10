@@ -159,7 +159,7 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
 
 
         [HttpGet]
-        public HttpResponseMessage AbortPayment(Guid invoiceKey, Guid paymentKey, string crypt)
+        public HttpResponseMessage AbortPayment(Guid invoiceKey, Guid paymentKey, string crypt = "")
         {
             var invoiceService = _merchelloContext.Services.InvoiceService;
             var paymentService = _merchelloContext.Services.PaymentService;
@@ -193,18 +193,23 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
         {
             IPayPalNotificationRequest payPalNotificationRequest = new SagePayDirectIntegration(_directProcessor.Settings).GetPayPalNotificationRequest();
 
+            // Query merchello for associated invoice and payment objects
+            var payment = _merchelloContext.Services.PaymentService.GetByKey(paymentKey);
+            var invoice = _merchelloContext.Services.InvoiceService.GetByKey(invoiceKey);
+
+            var cancelUrl = payment.ExtendedData.GetValue(Constants.ExtendedDataKeys.CancelUrl);
+
             if (payPalNotificationRequest.Status != ResponseStatus.OK)
             {
                 //var ex = new Exception(string.Format("Invalid payment status.  Detail: {0}", paymentResult.StatusDetail));
-                //LogHelper.Error<SagePayApiController>("Sagepay error processing payment.", ex);
-                return ShowError(payPalNotificationRequest.StatusDetail);
+                LogHelper.Error<SagePayApiController>("Sagepay error processing payment.", new System.Exception(payPalNotificationRequest.StatusDetail));
+                var cancelResponse = Request.CreateResponse(HttpStatusCode.Moved);
+                cancelResponse.Headers.Location = new Uri(cancelUrl.Replace("%INVOICE%", invoice.Key.ToString().EncryptWithMachineKey()));
+                return cancelResponse;
             }
 
-            // Query merchello for associated invoice and payment objects
-            var invoice = _merchelloContext.Services.InvoiceService.GetByKey(invoiceKey);
-            var payment = _merchelloContext.Services.PaymentService.GetByKey(paymentKey);
 
-            if (invoice == null || payment == null || invoice.CustomerKey == null)
+            if (invoice == null || payment == null)
             {
                 var ex = new NullReferenceException(string.Format("Invalid argument exception. Arguments: invoiceKey={0}, paymentKey={1}", invoiceKey, paymentKey));
                 LogHelper.Error<SagePayApiController>("Payment not authorized.", ex);
@@ -232,7 +237,9 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
                 sagePayResponseValues = HttpUtility.ParseQueryString(responseString);
                 if (sagePayResponseValues["Status"] != "OK")
                 {
-                    return ShowError(sagePayResponseValues["StatusDetail"]);    
+                    // This is almost certainly caused by the user cancelling the paypal payment. Abort the payment
+                    LogHelper.Error<SagePayApiController>("Payment not authorized.", new NullReferenceException(string.Format("Payment Invalid. Arguments: invoiceKey={0}, paymentKey={1}, exception={2}", invoiceKey, paymentKey, sagePayResponseValues["StatusDetail"])));
+                    return AbortPayment(invoiceKey, paymentKey);
                 }
                 
 
@@ -270,6 +277,8 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
                 LogHelper.Error<SagePayApiController>("Payment not captured.", captureResult.Payment.Exception);
                 return ShowError(captureResult.Payment.Exception.Message);
             }
+
+            Notification.Trigger("OrderConfirmation", new Merchello.Core.Gateways.Payment.PaymentResult(Attempt<Merchello.Core.Models.IPayment>.Succeed(payment), invoice, true), new[] { invoice.BillToEmail });
 
             // Redirect to ReturnUrl (with token replacement for an alternative means of order retrieval)
             var returnUrl = payment.ExtendedData.GetValue(Constants.ExtendedDataKeys.ReturnUrl);
