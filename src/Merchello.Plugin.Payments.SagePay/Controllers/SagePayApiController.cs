@@ -193,16 +193,21 @@ namespace Merchello.Plugin.Payments.SagePay.Controllers
         {
             IPayPalNotificationRequest payPalNotificationRequest = new SagePayDirectIntegration(_directProcessor.Settings).GetPayPalNotificationRequest();
 
+            // Query merchello for associated invoice and payment objects
+            var payment = _merchelloContext.Services.PaymentService.GetByKey(paymentKey);
+            var invoice = _merchelloContext.Services.InvoiceService.GetByKey(invoiceKey);
+
+            var cancelUrl = payment.ExtendedData.GetValue(Constants.ExtendedDataKeys.CancelUrl);
+
             if (payPalNotificationRequest.Status != ResponseStatus.OK)
             {
                 //var ex = new Exception(string.Format("Invalid payment status.  Detail: {0}", paymentResult.StatusDetail));
-                //LogHelper.Error<SagePayApiController>("Sagepay error processing payment.", ex);
-                return ShowError(payPalNotificationRequest.StatusDetail);
+                LogHelper.Error<SagePayApiController>("Sagepay error processing payment.", new System.Exception(payPalNotificationRequest.StatusDetail));
+                var cancelResponse = Request.CreateResponse(HttpStatusCode.Moved);
+                cancelResponse.Headers.Location = new Uri(cancelUrl.Replace("%INVOICE%", invoice.Key.ToString().EncryptWithMachineKey()));
+                return cancelResponse;
             }
 
-            // Query merchello for associated invoice and payment objects
-            var invoice = _merchelloContext.Services.InvoiceService.GetByKey(invoiceKey);
-            var payment = _merchelloContext.Services.PaymentService.GetByKey(paymentKey);
 
             if (invoice == null || payment == null)
             {

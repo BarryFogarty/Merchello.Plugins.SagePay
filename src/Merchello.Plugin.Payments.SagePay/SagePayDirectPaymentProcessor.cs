@@ -36,8 +36,39 @@ namespace Merchello.Plugin.Payments.SagePay
         public IPaymentResult InitializePayment(IInvoice invoice, IPayment payment, ProcessorArgumentCollection args)
         {
             try
-            {            
-                var sagePayDirectIntegration = new SagePayAPIIntegration(Settings);
+            {
+                var sagePayDirectIntegration = new SagePayDirectIntegration(Settings);
+
+                // See if this is a repeat or a new card
+                if (args.ContainsKey("relatedSecurityKey"))
+                {
+                    IRepeatRequest repeatRequest = sagePayDirectIntegration.RepeatRequest();
+
+                    SetSagePayRepeatData(repeatRequest, invoice, payment, args.AsRepeatDetails());
+                    ICaptureResult repeatResult = sagePayDirectIntegration.DoRepeat(repeatRequest, false);
+
+                    if (repeatResult.Status == ResponseStatus.OK)
+                    {
+                        payment.Collected = true;
+                        payment.Authorized = true;
+                        GatewayProviderService service = new GatewayProviderService();
+                        service.ApplyPaymentToInvoice(payment.Key, invoice.Key, Core.AppliedPaymentType.Debit, "SagePay: capture authorized", invoice.Total);
+
+                        payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.SagePaySecurityKey, repeatResult.SecurityKey);
+                        payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.SagePayTransactionCode, repeatResult.VpsTxId);
+                        payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.SagepayTxAuthNo, repeatResult.TxAuthNo.ToString());
+                        payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.SagepayVendorTxCode, repeatRequest.VendorTxCode);
+
+                        return new PaymentResult(Attempt<IPayment>.Succeed(payment), invoice, true);
+                    }
+                    else
+                    {
+                        return new PaymentResult(Attempt<IPayment>.Fail(payment, new Exception(repeatResult.StatusDetail)), invoice, true);
+                    }
+
+                }                
+                    
+                
                 var request = sagePayDirectIntegration.DirectPaymentRequest();
 
                 var creditCard = args.AsCreditCard();
@@ -117,11 +148,16 @@ namespace Merchello.Plugin.Payments.SagePay
                 IDirectPaymentResult result = sagePayDirectIntegration.ProcessDirectPaymentRequest(request, string.Format("https://{0}.sagepay.com/gateway/service/vspdirect-register.vsp", Settings.Environment));
                 
 
-                
+
                 if (result.Status == ResponseStatus.OK)
                 {
                     payment.Collected = true;
                     payment.Authorized = true;
+                    payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.SagePaySecurityKey, result.SecurityKey);
+                    payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.SagePayTransactionCode, result.VpsTxId);
+                    payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.SagepayTxAuthNo, result.TxAuthNo.ToString());
+                    payment.ExtendedData.SetValue(Constants.ExtendedDataKeys.SagepayVendorTxCode, request.VendorTxCode);                    
+
                     GatewayProviderService service = new GatewayProviderService();
                     service.ApplyPaymentToInvoice(payment.Key, invoice.Key, Core.AppliedPaymentType.Debit, "SagePay: capture authorized", invoice.Total);
                     return new PaymentResult(Attempt<IPayment>.Succeed(payment), invoice, true);
@@ -266,6 +302,35 @@ namespace Merchello.Plugin.Payments.SagePay
             //request.DeliveryPostCode = shippingAddress.PostalCode;
             //request.DeliveryState = shippingAddress.Region;
             //request.DeliveryPhone = shippingAddress.Phone;
+
+        }
+
+
+        private void SetSagePayRepeatData(IRepeatRequest request, IInvoice invoice, IPayment payment, RepeatDetails repeat)
+        {
+            // Get Merchello data
+            //TODO - what if there is no shipping info?  e.g. Classes only - Get from billing?
+            var shipmentLineItem = invoice.ShippingLineItems().FirstOrDefault();
+            var shipment = shipmentLineItem.ExtendedData.GetShipment<InvoiceLineItem>();
+            var shippingAddress = shipment.GetDestinationAddress();
+            var billingAddress = invoice.GetBillingAddress();
+
+            // SagePay details
+            request.VpsProtocol = Settings.ProtocolVersion;
+            request.TransactionType = Settings.TransactionType;
+            request.Vendor = Settings.VendorName;
+            request.VendorTxCode = SagePayAPIIntegration.GetNewVendorTxCode();
+            request.Amount = payment.Amount;
+            request.Currency = invoice.CurrencyCode();
+            request.Description = "Goods from " + Settings.VendorName;
+            request.RelatedSecurityKey = repeat.RelatedSecurityKey;
+            request.RelatedVpsTxId = repeat.RelatedVpsTxId;
+            request.RelatedVendorTxCode = repeat.RelatedVendorTxCode;
+            request.RelatedTxAuthNo = Convert.ToInt32(repeat.RelatedTxAuthNo);
+
+            // Delivery details are optional for repeat transactions, it will use the original details if they are not supplied
+            // It would be expected to use the delivery details from merchello anyway so we won't supply them here
+
 
         }
 

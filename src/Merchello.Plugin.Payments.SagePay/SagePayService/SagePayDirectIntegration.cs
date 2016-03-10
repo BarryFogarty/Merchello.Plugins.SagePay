@@ -17,9 +17,9 @@ namespace Merchello.Plugin.Payments.SagePay.SagePayService
             _settings = settings;
         }
 
-        public IDirectPayment DirectPaymentRequest()
+        public IRepeatRequest RepeatRequest()
         {
-            IDirectPayment request = new DataObject();
+            IRepeatRequest request = new DataObject();
             return request;
         }
 
@@ -44,6 +44,24 @@ namespace Merchello.Plugin.Payments.SagePay.SagePayService
             return request;
         }
 
-        
+
+        public ICaptureResult DoRepeat(IRepeatRequest request, bool deferred)
+        {
+            if (deferred)
+                request.TransactionType = TransactionType.REPEATDEFERRED;
+            else
+                request.TransactionType = TransactionType.REPEAT;
+
+            if (request.Cv2 == null)
+            {
+                request.Cv2 = "";
+            }
+
+            RequestQueryString = BuildQueryString(request, ProtocolMessage.REPEAT_REQUEST, _settings.ProtocolVersion);
+            ResponseQueryString = ProcessWebRequestToSagePay(string.Format("https://{0}.sagepay.com/gateway/service/repeat.vsp", _settings.Environment), RequestQueryString);
+            ICaptureResult result = ConvertToCaptureResult(ResponseQueryString);
+            return result;
+        }
+
     }
 }

@@ -45,6 +45,13 @@ namespace Merchello.Plugin.Payments.SagePay
             // Stores the 3DSecure url
             public static string ThreeDSecureUrl = "ThreeDSecureUrl";
 
+            // Stores the vendor transaction reference code
+            public static string SagepayVendorTxCode = "SagepayVendorTxCode";
+
+            /// Stores the authorisation code
+            public static string SagepayTxAuthNo = "SagepayTxAuthNo";
+
+
         }
 
 
